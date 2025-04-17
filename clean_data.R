@@ -172,10 +172,6 @@ write.csv(mRT_data, here("Output", "ELP.csv"), row.names = FALSE)
 ####
 #### now clean BLP data using same process
 ####
-RT_data_BLP %>% 
-  filter(word == "abbés")
-
-
 RT_data_BLP <- read.delim(here("blp_raw", "blp-trials.txt"), sep="\t") %>% 
   select(participant, lexicality, accuracy, rt.raw, spelling) %>% 
   rename(ID = participant, type = lexicality, acc = accuracy, RT = rt.raw, word = spelling) %>% 
