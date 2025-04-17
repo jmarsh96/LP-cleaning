@@ -153,12 +153,13 @@ write.csv(RT_data_word_filtered, here("Output", "ELP_single_trial.csv"), row.nam
 
 ## process and save mRT data
 ELP_accuracy = RT_data %>%
-  filter(type == 1,!(ID %in% participants_to_remove), RT > RT_minimum, 
+  filter(type == 1, !(ID %in% participants_to_remove), RT > RT_minimum, 
   RT < RT_maximum) %>% 
   group_by(word) %>% 
   summarise(accuracy = mean(acc))
 
-mRT_data <- RT_data_word_filtered %>% 
+mRT_data <- RT_data_word_filtered %>%
+  filter(acc == 1) %>% 
   group_by(word) %>% 
   summarise(mRT = mean(RT)) %>% 
   left_join(ELP_accuracy, by = "word")
@@ -209,7 +210,7 @@ participants_to_remove <- c(participants_to_remove_acc, participants_to_remove_o
 
 
 RT_data_BLP_word_filtered <- RT_data_BLP %>% 
-  filter(type == 1, acc == 1,!(ID %in% participants_to_remove), RT > RT_minimum, 
+  filter(type == 1, !(ID %in% participants_to_remove), RT > RT_minimum, 
          RT < RT_maximum)
 
 
@@ -223,7 +224,8 @@ BLP_accuracy <- RT_data_BLP %>%
   group_by(word) %>% 
   summarise(acc = mean(acc))
 
-mRT_data <- RT_data_BLP_word_filtered %>% 
+mRT_data <- RT_data_BLP_word_filtered %>%
+  filter(acc == 1) %>% 
   group_by(word) %>% 
   summarise(mRT = mean(RT)) %>% 
   left_join(BLP_accuracy, by = "word")
