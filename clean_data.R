@@ -2,19 +2,19 @@
 
 rm(list=ls())
 
-library(tidyverse)
+pacman::p_load(tidyverse, here)
 
 skip_list = c("9999.LDT", "793DATA.LDT", "Data999.LDT", "Data1000.LDT", 
               "Data1010.LDT", "Data1016.LDT")
 
 # read in participant data
-ELP_raw_dir <-  "ldt_raw_OSF/"
+ELP_raw_dir <-  here("ldt_raw_OSF")
 part_file_list <- tibble(fn = list.files(path = ELP_raw_dir))
 part_file_list_filter <- part_file_list %>% filter(!fn %in% skip_list) %>% flatten()
 
 
 # helper function to generate master list
-correct_date <- function(date_in){
+correct_date <- function(date_in) {
   delim <- str_match(date_in,"[:punct:]")
   
   if(!is.na(delim)){
@@ -41,7 +41,7 @@ correct_date_vec <- Vectorize(correct_date, vectorize.args = "date_in")
 
 part_data <- function(fn){
   print(paste0("Reading ... ", fn))
-  trial_data <- read_lines(paste0(ELP_raw_dir, fn))
+  trial_data <- read_lines(here(ELP_raw_dir, fn))
   
   # Get demographic information from bottom of file. We can work on this later.
   # Using length(trial_data) instead of max(dem_info_index) takes care of files in which the 
@@ -104,9 +104,9 @@ part_data_list <- map(part_file_list_filter, ~part_data(.x))
 RT_data <- map(part_data_list, ~ .x %>% `[[`("RT_data")) %>% 
   bind_rows()
 
-if(!dir.exists("Output/")) dir.create("Output/")
+if(!dir.exists(here("Output"))) dir.create(here("Output"))
 
-write.csv(RT_data, "Output/ELP_individual_level.csv", row.names = FALSE)
+write.csv(RT_data, here("Output", "ELP_individual_level.csv"), row.names = FALSE)
 
 
 ## Now filter and remove any non-words and clean the individual level data
@@ -142,13 +142,13 @@ participants_to_remove <- c(participants_to_remove_acc, participants_to_remove_o
 
 
 RT_data_word_filtered <- RT_data %>% 
-  filter(type == 1, acc == 1,!(ID %in% participants_to_remove), RT > RT_minimum, 
+  filter(type == 1,!(ID %in% participants_to_remove), RT > RT_minimum, 
          RT < RT_maximum)
 
 
 ## Save cleaned individual level data as ELP-single-trial
 
-write.csv(RT_data_word_filtered, "Output/ELP_single_trial.csv", row.names = FALSE)
+write.csv(RT_data_word_filtered, here("Output", "ELP_single_trial.csv"), row.names = FALSE)
 
 
 ## process and save mRT data
@@ -164,7 +164,7 @@ mRT_data <- RT_data_word_filtered %>%
   left_join(ELP_accuracy, by = "word")
 
 
-write.csv(mRT_data, "Output/ELP.csv", row.names = FALSE)
+write.csv(mRT_data, here("Output", "ELP.csv"), row.names = FALSE)
 
 
 
@@ -175,14 +175,14 @@ RT_data_BLP %>%
   filter(word == "abbés")
 
 
-RT_data_BLP <- read.delim("blp_raw/blp-trials.txt",sep="\t") %>% 
+RT_data_BLP <- read.delim(here("blp_raw", "blp-trials.txt"), sep="\t") %>% 
   select(participant, lexicality, accuracy, rt.raw, spelling) %>% 
   rename(ID = participant, type = lexicality, acc = accuracy, RT = rt.raw, word = spelling) %>% 
   mutate(across(c(acc, RT), as.numeric),
          type = factor(type, labels=c(0,1)),
          ID = as.factor(ID))
 
-write.csv(RT_data_BLP, "Output/BLP_individual_level.csv", row.names = FALSE)
+write.csv(RT_data_BLP, here("Output", "BLP_individual_level.csv"), row.names = FALSE)
 
 ## Now filter and remove any non-words and clean the individual level data
 participant_accuracy <- RT_data_BLP %>%
@@ -213,7 +213,7 @@ RT_data_BLP_word_filtered <- RT_data_BLP %>%
          RT < RT_maximum)
 
 
-write.csv(RT_data_BLP_word_filtered, "Output/BLP_single_trial.csv", row.names = FALSE)
+write.csv(RT_data_BLP_word_filtered, here("Output", "BLP_single_trial.csv"), row.names = FALSE)
 
 ## process and save mRT data
 
@@ -228,6 +228,6 @@ mRT_data <- RT_data_BLP_word_filtered %>%
   summarise(mRT = mean(RT)) %>% 
   left_join(BLP_accuracy, by = "word")
 
-write.csv(mRT_data, "Output/BLP.csv", row.names = FALSE)
+write.csv(mRT_data, here("Output", "BLP.csv"), row.names = FALSE)
 
 
